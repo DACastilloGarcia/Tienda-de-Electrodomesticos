@@ -1,0 +1,246 @@
+
+CREATE DATABASE controlInventarios;
+USE controlInventarios;
+
+-- Crear la tabla Categorias
+CREATE TABLE Categorias (
+    id_categoria INT IDENTITY(1,1) PRIMARY KEY,
+    nombre NVARCHAR(100) NOT NULL
+);
+
+-- Crear la tabla Proveedores
+CREATE TABLE Proveedores (
+    id_proveedor INT IDENTITY(1,1) PRIMARY KEY,
+    nombre NVARCHAR(100) NOT NULL,
+    telefono NVARCHAR(15),
+    email NVARCHAR(100),
+    direccion NVARCHAR(MAX)
+);
+
+-- Crear la tabla Productos
+CREATE TABLE Productos (
+    id_producto INT IDENTITY(1,1) PRIMARY KEY,
+    nombre NVARCHAR(100) NOT NULL,
+    descripcion NVARCHAR(MAX),
+    precio DECIMAL(10, 2) NOT NULL,
+    stock INT NOT NULL,
+    id_categoria INT,
+    id_proveedor INT,
+    garantia_meses INT,
+    imagen NVARCHAR(MAX), -- Columna para la ruta de la imagen
+    FOREIGN KEY (id_categoria) REFERENCES Categorias(id_categoria),
+    FOREIGN KEY (id_proveedor) REFERENCES Proveedores(id_proveedor)
+);
+
+-- Crear la tabla Clientes
+CREATE TABLE Clientes (
+    id_cliente INT IDENTITY(1,1) PRIMARY KEY,
+    nombre NVARCHAR(100) NOT NULL,
+    email NVARCHAR(100) NOT NULL,
+    telefono NVARCHAR(15),
+    direccion NVARCHAR(MAX),
+    contrasenia NVARCHAR(255) NULL,
+    usuario NVARCHAR(100) NULL
+);
+
+-- Crear la tabla Pedidos
+CREATE TABLE Pedidos (
+    id_pedido INT IDENTITY(1,1) PRIMARY KEY,
+    id_cliente INT,
+    fecha_pedido DATE NOT NULL,
+    total DECIMAL(10, 2) NOT NULL,
+    nombre NVARCHAR(100),
+    email NVARCHAR(100),
+    telefono NVARCHAR(15),
+    direccion NVARCHAR(MAX),
+    session_id NVARCHAR(100),
+    FOREIGN KEY (id_cliente) REFERENCES Clientes(id_cliente)
+);
+
+-- Crear la tabla Detalles_Pedido
+CREATE TABLE Detalles_Pedido (
+    id_detalle INT IDENTITY(1,1) PRIMARY KEY,
+    id_pedido INT,
+    id_producto INT,
+    cantidad INT NOT NULL,
+    precio_unitario DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (id_pedido) REFERENCES Pedidos(id_pedido),
+    FOREIGN KEY (id_producto) REFERENCES Productos(id_producto)
+);
+
+-- Crear la tabla Metodos_Pago
+CREATE TABLE Metodos_Pago (
+    id_metodo INT IDENTITY(1,1) PRIMARY KEY,
+    nombre NVARCHAR(50) NOT NULL
+);
+
+-- Crear la tabla Pagos
+CREATE TABLE Pagos (
+    id_pago INT IDENTITY(1,1) PRIMARY KEY,
+    id_pedido INT,
+    id_metodo INT,
+    monto DECIMAL(10, 2) NOT NULL,
+    fecha_pago DATE NOT NULL,
+    FOREIGN KEY (id_pedido) REFERENCES Pedidos(id_pedido),
+    FOREIGN KEY (id_metodo) REFERENCES Metodos_Pago(id_metodo)
+);
+
+-- Crear la tabla Carritos
+CREATE TABLE Carritos (
+    id_carrito INT IDENTITY(1,1) PRIMARY KEY,
+    session_id NVARCHAR(100), -- Identificador único para usuarios no registrados
+    id_cliente INT NULL, -- Para usuarios registrados
+    fecha_creacion DATETIME NOT NULL DEFAULT GETDATE()
+);
+
+-- Crear la tabla Carrito_Productos
+CREATE TABLE Carrito_Productos (
+    id_carrito_producto INT IDENTITY(1,1) PRIMARY KEY,
+    id_carrito INT,
+    id_producto INT,
+    cantidad INT NOT NULL,
+    fecha_agregado DATETIME NOT NULL DEFAULT GETDATE(),
+    FOREIGN KEY (id_carrito) REFERENCES Carritos(id_carrito),
+    FOREIGN KEY (id_producto) REFERENCES Productos(id_producto)
+);
+
+-- Insertar datos en Categorias
+INSERT INTO Categorias (nombre) VALUES ('Electrónica'), ('Muebles'), ('Ropa');
+
+-- Insertar datos en Proveedores
+INSERT INTO Proveedores (nombre, telefono, email, direccion)
+VALUES 
+('ElectroWorld', '123-456-7890', 'contacto@electroworld.com', '123 Main St, Ciudad'),
+('FurniturePlus', '987-654-3210', 'info@furnitureplus.com', '456 Oak St, Ciudad'),
+('FashionHub', '555-123-4567', 'sales@fashionhub.com', '789 Pine St, Ciudad');
+
+-- Insertar datos en Productos
+INSERT INTO Productos (nombre, descripcion, precio, stock, id_categoria, id_proveedor, garantia_meses, imagen)
+VALUES 
+('Smartphone', 'Teléfono móvil con pantalla táctil', 299.99, 50, 1, 1, 12, 'https://elsalvador.solutekla.com/photo/1/samsung/celulares/galaxy_s6_64_gb_azul/galaxy_s6_64_gb_azul_0001'),
+('Sofa Cama', 'Sofá que se convierte en cama', 499.99, 20, 2, 2, 24, 'https://siman.vtexassets.com/arquivos/ids/4391496/104080239_2.jpg?v=638234810468800000'),
+('Camisa de Algodón', 'Camisa de algodón para hombre', 29.99, 100, 3, 3, 6, 'https://yazbek.com.mx/cdn/shop/products/C0605-camisa-oxford-liso-ml-caballero-75algodon-25poliester-cobalto_1.jpg?v=1693281109');
+
+-- Insertar datos en Clientes
+-- contrasenia:: contraseña123
+INSERT INTO Clientes (nombre, email, telefono, direccion, contrasenia, usuario)
+VALUES 
+('Usuario Anónimo', 'anonimo@ejemplo.com', '0000000000', 'Dirección temporal', '8e7ab8d9fe3b324acdd1f76735eea350ea61ac24cbd17e5446946e5a4c71d999', 'anonimo'),
+('Juan Pérez', 'juan.perez@example.com', '555-987-6543', '101 Elm St, Ciudad', '8e7ab8d9fe3b324acdd1f76735eea350ea61ac24cbd17e5446946e5a4c71d999', 'juanPerez'),
+('Ana Gómez', 'ana.gomez@example.com', '555-123-4567', '202 Maple St, Ciudad', '8e7ab8d9fe3b324acdd1f76735eea350ea61ac24cbd17e5446946e5a4c71d999', 'anaG'),
+('Luis Martínez', 'luis.martinez@example.com', '555-765-4321', '303 Birch St, Ciudad', '8e7ab8d9fe3b324acdd1f76735eea350ea61ac24cbd17e5446946e5a4c71d999', 'luisMz');
+-- password: 12345
+update Clientes set contrasenia='5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5';
+-- Insertar datos en Pedidos
+INSERT INTO Pedidos (id_cliente, fecha_pedido, total)
+VALUES 
+(1, '2024-09-01', 299.99),
+(2, '2024-09-02', 499.99),
+(3, '2024-09-03', 29.99);
+
+-- Insertar datos en Detalles_Pedido
+INSERT INTO Detalles_Pedido (id_pedido, id_producto, cantidad, precio_unitario)
+VALUES 
+(1, 1, 1, 299.99),
+(2, 2, 1, 499.99),
+(3, 3, 1, 29.99);
+
+-- Insertar datos en Metodos_Pago
+INSERT INTO Metodos_Pago (nombre)
+VALUES ('Tarjeta de Crédito'), ('Transferencia Bancaria'), ('PayPal');
+INSERT INTO Metodos_Pago (nombre)
+VALUES ('Efectivo');
+
+
+-- Insertar datos en Pagos
+INSERT INTO Pagos (id_pedido, id_metodo, monto, fecha_pago)
+VALUES 
+(1, 1, 299.99, '2024-09-01'),
+(2, 2, 499.99, '2024-09-02'),
+(3, 3, 29.99, '2024-09-03');
+
+-- Actualizar un carrito con el cliente registrado
+UPDATE Carritos SET id_cliente = 1 WHERE id_carrito = 1;
+
+select*from Clientes
+select*from Carritos
+select*from Carrito_Productos
+select* from Pedidos
+select*from Detalles_Pedido
+select*from Pagos;
+
+update Clientes set contrasenia='5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5';
+
+
+select*from Categorias
+select*from Proveedores
+select*from Productos
+
+-- Insertar datos en Productos para Electrónica
+INSERT INTO Productos (nombre, descripcion, precio, stock, id_categoria, id_proveedor, garantia_meses, imagen)
+VALUES 
+('Lavadora', 'Lavadora automática de alta eficiencia', 450.00, 30, 1, 1, 24, 'https://example.com/images/lavadora.jpg'),
+('Refrigeradora', 'Refrigeradora de dos puertas con congelador', 800.00, 15, 1, 1, 36, 'https://example.com/images/refrigeradora.jpg'),
+('Microondas', 'Microondas compacto con múltiples funciones', 150.00, 40, 1, 1, 12, 'https://example.com/images/microondas.jpg');
+
+-- Insertar datos en Productos para Muebles
+INSERT INTO Productos (nombre, descripcion, precio, stock, id_categoria, id_proveedor, garantia_meses, imagen)
+VALUES 
+('Mesa de Comedor', 'Mesa de comedor para seis personas', 300.00, 10, 2, 2, 12, 'https://mitalmuebles.com//wp-content/uploads/Comedor-Monaco-.jpeg'),
+('Armario', 'Armario de madera con puertas corredizas', 700.00, 5, 2, 2, 24, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQXHEd7wBv87U4uxqfXjJ-loNOPdXpmUFEx7A&s'),
+('Silla', 'Silla ergonómica para oficina', 100.00, 25, 2, 2, 12, 'https://sv.epaenlinea.com/media/catalog/product/cache/e28d833c75ef32af78ed2f15967ef6e0/4/8/48708488-fffc-432d-8c8c-b89c33a73ea8.jpg');
+
+-- Insertar datos en Productos para Ropa
+INSERT INTO Productos (nombre, descripcion, precio, stock, id_categoria, id_proveedor, garantia_meses, imagen)
+VALUES 
+('Vestido', 'Vestido casual de verano', 45.00, 60, 3, 3, 6, 'https://i.pinimg.com/736x/2d/9a/6a/2d9a6a4ef44d6b078a92fec52119538d.jpg'),
+('Traje de Gala', 'Traje de gala elegante para eventos formales', 250.00, 10, 3, 3, 6, 'https://s.alicdn.com/@sc04/kf/Hde9ab5c63c3349d7bcf577cb9777af345.jpg_300x300.jpg'),
+('Disfraz', 'Disfraz temático para fiestas', 35.00, 20, 3, 3, 6, 'https://i.ebayimg.com/thumbs/images/g/IagAAOSw5iNmzB~C/s-l1200.jpg');
+
+
+select* from Productos
+UPDATE Productos set 
+	imagen ='https://mabeglobal.com/medias/1200Wx1200H-Mabe-Lavadora-24-kg-Diamond-Gray-LMA74215WDAB0-Frente.jpg?context=bWFzdGVyfGltYWdlc3wyMTkzMDl8aW1hZ2UvanBlZ3xhR1JqTDJoalpTOHhNREU1TWpVME5UVTNPVEF6T0M4eE1qQXdWM2d4TWpBd1NGOU5ZV0psTFV4aGRtRmtiM0poTFRJMExXdG5MVVJwWVcxdmJtUXRSM0poZVMxTVRVRTNOREl4TlZkRVFVSXdMVVp5Wlc1MFpTNXFjR2N8NWY2MGM3OTRjMmZhMTlkMDIyOTZiYzNjODA2NjJhMjIzMzEzYWZiY2Y0OTU3NTk0ZDZkN2QwMDVlYTQ2MDgxNQ'
+	WHERE id_producto=4;
+	UPDATE Productos set 
+	imagen ='https://siman.vtexassets.com/arquivos/ids/1082725/103164228_1.jpg?v=637472994853630000'
+	WHERE id_producto=5;
+	UPDATE Productos set 
+	imagen ='https://images-cdn.ubuy.co.in/646949e9ea33ae72f6603349-rca-rmw1178-1-1-cu-ft-stainless-steel.jpg'
+	WHERE id_producto=6;
+
+
+	UPDATE Productos set 
+	nombre ='Televisor',descripcion='Televisor de 55 pulgadas con resolución 4K y HDR',precio='500.00',
+	imagen='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSnulmfnZXOZvHCOR-puJwT-l2CpqoC5x7mjg&s'
+	WHERE id_producto=10;
+		UPDATE Productos set 
+	nombre ='Laptop',descripcion='Laptop con procesador Intel i5, 8GB RAM y 512GB SSD',
+	imagen='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTXmi8aDdE4bt2KXQPQ1m0VN2mZChEA84-bzw&s'
+	WHERE id_producto=11;
+			UPDATE Productos set 
+	nombre ='Auriculares Bluetooth',descripcion='Auriculares inalámbricos con cancelación de ruido',
+	imagen='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR9fWKJ9D9QatfKO8dqfZEKADvP8lW7IvsPmQ&s'
+	WHERE id_producto=12;
+
+	UPDATE Productos set 
+	nombre ='Proyector portatil',descripcion='Proyector portatil con resolución 1080p y conectividad HDMI',
+	imagen='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhRiBxkTP-IanPpNQHwK3bMaEox_Y4q8VQ1g&s'
+	WHERE id_producto=3;
+	select*from Carritos
+	select*from Productos
+
+
+--Se inserto la parde de administrador 
+
+ALTER TABLE Clientes ADD es_administrador BIT NOT NULL DEFAULT 0;
+
+INSERT INTO Clientes (nombre, email, telefono, direccion, contrasenia, usuario, es_administrador)
+VALUES ('Admin', 'admin@example.com', '555-0000', 'Direccion', 'aq1sw2de3', 'admin', 1);
+
+  SELECT * FROM Clientes
+
+ SELECT *
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_NAME = 'Clientes' AND COLUMN_NAME = 'es_administrador';
+
